@@ -1,0 +1,64 @@
+<div class="container">
+  <div class="row">
+
+    <div class="col-12 col-md-6 offset-md-3">
+      <h1 class="text-center">{{ title }}</h1>
+      <app-list-errors [errors]="errors"></app-list-errors>
+      <form [formGroup]="authForm" (ngSubmit)="login()">
+        <fieldset [disabled]="isSubmitting">
+          <fieldset class="form-group">
+            <div class="input-group input-group-lg">
+                <input
+                formControlName="apiUrl"
+                placeholder="ApiUrl"
+                class="form-control"
+                type="text"/>  
+                <div class="input-group-append">
+                    <i class="input-group-text fas fa-link"></i> 
+                </div>
+            </div>
+          </fieldset>
+          <fieldset class="form-group">
+            <div class="input-group input-group-lg">
+                <input
+                formControlName="username"
+                placeholder="Username"
+                class="form-control"
+                type="text"/>  
+                <div class="input-group-append">
+                    <i class="input-group-text fas fa-user"></i> 
+                </div>
+            </div>
+          </fieldset>
+          <fieldset class="form-group">
+            <div class="input-group input-group-lg">
+                <input
+                formControlName="password"
+                placeholder="Password"
+                class="form-control"
+                type="password"/>  
+                <div class="input-group-append">
+                    <i class="input-group-text fas fa-lock"></i> 
+                </div>
+            </div>
+          </fieldset>
+          <fieldset class="form-group checkbox">
+              <label class="center-block">
+                  <input type="checkbox" formControlName="remember">Remember Me?
+                </label>
+          </fieldset>
+          <fieldset class="form-group">
+              <div class="input-group input-group-lg">
+                  <button class="btn btn-lg btn-primary pull-xs-right" [disabled]="!authForm.valid" type="submit">
+                      {{ title }}
+                      <span class="input-group-text fas fa-sign-in-alt" style="background: transparent;border: transparent"></span>
+                  </button>
+              </div>
+          </fieldset>
+        </fieldset>
+      </form>
+      <p>{{message}}</p>
+    </div>
+
+  </div>
+</div>
