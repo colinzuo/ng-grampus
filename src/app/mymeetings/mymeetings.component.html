@@ -1,5 +1,18 @@
-<h2>My Meetings Header</h2>
-<nav>
-    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-</nav>
-<router-outlet></router-outlet>
+<div class="container-fluid">
+    <div class="row">
+        <div class="pt-3 px-2" [style.width.px]="navPanelWidth"
+            style="background-color: white;">
+            <nav class="nav nav-pills flex-column">
+                <a class="nav-item nav-link" 
+                    routerLink="/mymeetings/dashboard" 
+                    routerLinkActive="active">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+            </nav>
+        </div> 
+        <div [style.width.px]="mainBodyWidth">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

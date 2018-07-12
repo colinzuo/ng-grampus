@@ -1,0 +1,27 @@
+:root {
+    --main-color:#d87c7c;
+    --confchart-tooltip-bg-color: #6a7985;
+}
+
+.chart-header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: white;
+}
+
+.chart-header-label {
+    margin-left: 5px;
+}
+
+.chart-header-data {
+    margin-left: 5px;
+    font-size: 150%;
+    color: blue;
+}
+
+.chart-body {
+    background-color: white;
+    height: 700px;
+}

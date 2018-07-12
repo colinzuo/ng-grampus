@@ -5,7 +5,6 @@ import { AuthGuardService } from '../core';
 
 import { MymeetingsComponent } from './mymeetings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { DashboardHomeComponent } from './dashboard/dashboard-home.component';
 
 const mymeetingsRoutes: Routes = [
     {
@@ -19,13 +18,7 @@ const mymeetingsRoutes: Routes = [
             children: [
                 {
                     path: 'dashboard',
-                    component: DashboardComponent,
-                    children: [
-                      {
-                        path: '',
-                        component: DashboardHomeComponent
-                      }
-                    ],
+                    component: DashboardComponent
                 },
                 {
                     path: '',

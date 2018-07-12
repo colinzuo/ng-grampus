@@ -1,2 +1,43 @@
-<h2>DashBoard Center</h2>
-<router-outlet></router-outlet>
+<div class="container-fluid">
+    <ul class="nav nav-tabs" id="myTab" role="tablist" [style.width.px]="mainBodyWidth">
+        <li class="nav-item">
+            <a class="nav-link active" id="conf-general-tab" data-toggle="tab" href="#conf-general" 
+                role="tab">会议概况</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="call-general-tab" data-toggle="tab" 
+                href="#call-general" role="tab">呼叫概况</a>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="conf-general" role="tabpanel">
+            <div class="mt-3 chart-header" [style.width.px]="mainBodyWidth">
+                <span class="chart-header-label">会议 总数量：</span>
+                <span class="chart-header-data">{{confTotalCount}}</span>
+                <span class="chart-header-label">个</span>
+                <span class="ml-3 chart-header-label">总时长：</span>
+                <span class="chart-header-data">{{confTotalDurationSum}}</span>
+                <span class="chart-header-label">小时</span>
+            </div>
+            <div echarts class="mt-1 chart-body" [style.width.px]="mainBodyWidth"
+                    [options]="confChartOption" 
+                    (chartInit)="onConfGeneralChartInit($event)">
+            </div>
+        </div>
+        <div class="tab-pane fade" id="call-general" role="tabpanel">
+            <div class="mt-3 chart-header" [style.width.px]="mainBodyWidth">
+                <span class="chart-header-label">呼叫 总数量：</span>
+                <span class="chart-header-data">{{callTotalCount}}</span>
+                <span class="chart-header-label">个</span>
+                <span class="ml-3 chart-header-label">总时长：</span>
+                <span class="chart-header-data">{{callTotalDurationSum}}</span>
+                <span class="chart-header-label">小时</span>
+            </div>
+            <div echarts class="mt-1 chart-body" [style.width.px]="mainBodyWidth"
+                    [options]="callChartOption" 
+                    (chartInit)="onCallGeneralChartInit($event)">
+            </div>
+        </div>
+    </div>
+</div>

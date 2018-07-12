@@ -30,7 +30,14 @@
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/popper.js/dist/umd/popper.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js",
-              "node_modules/jssha/src/sha.js"
+              "node_modules/jssha/src/sha.js",
+              "node_modules/echarts/dist/echarts.min.js",
+              "node_modules/echarts/theme/vintage.js",
+              "node_modules/echarts/theme/dark.js",
+              "node_modules/echarts/theme/macarons.js",
+              "node_modules/echarts/theme/infographic.js",
+              "node_modules/echarts/theme/shine.js",
+              "node_modules/echarts/theme/roma.js"
             ]
           },
           "configurations": {
