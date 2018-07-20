@@ -11,7 +11,7 @@ declare var jsSHA: any;
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+  styleUrls: ['./login.component.scss'],
   animations: [slideInDownAnimation]
 })
 export class LoginComponent implements OnInit {
@@ -99,14 +99,15 @@ export class LoginComponent implements OnInit {
     this.apiService.setApiUrl(this.apiUrl);
     this.apiService.saveApiUrl();
  
+    var _this = this;
     this.userService.attemptAuth(this.credentials).subscribe(
       () => {
-          this.router.navigate(["mymeetings"]);
+        _this.router.navigate(["mymeetings"]);
       },
       err => {
-        this.errors = err;
-        this.isSubmitting = false;
-        this.message = '';
+        _this.errors = {errors: {'login: ': err}};
+        _this.isSubmitting = false;
+        _this.message = '';
       }
     );
   }

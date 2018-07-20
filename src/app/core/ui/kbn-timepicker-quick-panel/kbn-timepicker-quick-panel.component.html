@@ -1,0 +1,15 @@
+<div class="kbn-timepicker-body">
+  <div *ngFor="let list of quickLists" class="kbn-timepicker-section kbn-timepicker-quick-section">
+    <ul class="list-unstyled">
+      <li *ngFor="let option of list">
+        <a
+          class="kuiLink"
+          (click)="applyQuick(option)"
+          tabindex="0" role="button"
+        >
+          {{option.display}}
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

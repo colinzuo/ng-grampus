@@ -1,7 +1,7 @@
 import { NgModule }              from '@angular/core';
 import { RouterModule, Routes }  from '@angular/router';
 
-import { AuthGuardService } from '../core';
+import { AuthGuardService, DatetimeRangePickerComponent } from '../core';
 
 import { MymeetingsComponent } from './mymeetings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -19,6 +19,10 @@ const mymeetingsRoutes: Routes = [
                 {
                     path: 'dashboard',
                     component: DashboardComponent
+                },
+                {
+                    path: 'datetime-range-picker',
+                    component: DatetimeRangePickerComponent
                 },
                 {
                     path: '',

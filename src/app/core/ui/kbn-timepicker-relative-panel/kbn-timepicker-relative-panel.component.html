@@ -1,0 +1,149 @@
+<form [formGroup]="relativeForm" role="form" (ngSubmit)="applyRelative()" class="" name="relativeTime">
+  <div class="kbn-timepicker-body kuiVerticalRhythm">
+    <div formGroupName="from" class="kbn-timepicker-section kbn-timepicker-body-column">
+      <div class="kuiLocalDropdownHeader kbn-timepicker-form-header">
+        <label class="kuiLocalDropdownHeader__label">
+          From
+        </label>
+
+        <div class="kuiLocalDropdownHeader__actions">
+          <a
+            class="kuiLocalDropdownHeader__action"
+            (click)="setRelativeToNow({key:'from'})"
+            tabindex="0" role="button"
+          >
+            Set To Now
+          </a>
+        </div>
+      </div>
+
+      <div class="kuiLocalDropdownFormNote kuiVerticalRhythmSmall">
+        <span [hidden]="!relative.from.preview">
+          {{relative.from.preview}}
+        </span>
+        <span [hidden]="relative.from.preview">
+          <em>Invalid Expression</em>
+        </span>
+      </div>
+
+      <div class="kuiFieldGroup kuiVerticalRhythmSmall">
+        <div class="kuiFieldGroupSection kuiFieldGroupSection--wide">
+          <input
+            formControlName="count"
+            (ngModelChange)="updateRelative({key:'from'})"
+            type="number"
+            [ngClass]="{ 'kuiTextInput-isInvalid' : checkRelative() }"
+            class="kuiTextInput fullWidth"
+          >
+        </div>
+
+        <div class="kuiFieldGroupSection">
+          <select
+            formControlName="unit"
+            (ngModelChange)="updateRelative({key:'from'})"
+            [ngClass]="{ 'kuiSelect-isInvalid': checkRelative() }"
+            class="kuiSelect fullWidth"
+          >
+            <option *ngFor="let opt of relativeOptions" [value]="opt.value">{{opt.text}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="kuiVerticalRhythmSmall">
+        <label class="kuiCheckBoxLabel">
+          <input
+            class="kuiCheckBox"
+            type="checkbox"
+            formControlName="round"
+            (ngModelChange)="updateRelative({key:'from'})"
+          >
+          <span class="kuiCheckBoxLabel__text">
+            round to the {{units[relative.from.unit.substring(0,1)]}}
+          </span>
+        </label>
+      </div>
+
+    </div>
+
+    <div formGroupName="to" class="kbn-timepicker-section kbn-timepicker-body-column">
+      <div class="kuiLocalDropdownHeader kbn-timepicker-form-header">
+        <label class="kuiLocalDropdownHeader__label">
+          To
+        </label>
+
+        <div class="kuiLocalDropdownHeader__actions">
+          <a
+            class="kuiLocalDropdownHeader__action"
+            (click)="setRelativeToNow({key:'to'})"
+            tabindex="0" role="button"
+          >
+            Set To Now
+          </a>
+        </div>
+      </div>
+
+      <div class="kuiLocalDropdownFormNote kuiVerticalRhythmSmall">
+        <span [hidden]="!relative.to.preview">
+          {{relative.to.preview}}
+        </span>
+        <span [hidden]="relative.to.preview">
+          <em>Invalid Expression</em>
+        </span>
+      </div>
+
+      <div class="kuiFieldGroup kuiVerticalRhythmSmall">
+        <div class="kuiFieldGroupSection kuiFieldGroupSection--wide">
+          <input
+            formControlName="count"
+            (ngModelChange)="updateRelative({key:'to'})"
+            type="number"
+            [ngClass]="{ 'kuiTextInput-isInvalid' : checkRelative() }"
+            class="kuiTextInput fullWidth"
+          >
+        </div>
+
+        <div class="kuiFieldGroupSection">
+          <select
+            formControlName="unit"
+            (ngModelChange)="updateRelative({key:'to'})"
+            [ngClass]="{ 'kuiSelect-isInvalid': checkRelative() }"
+            class="kuiSelect fullWidth"
+          >
+            <option *ngFor="let opt of relativeOptions" [value]="opt.value">{{opt.text}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="kuiVerticalRhythmSmall">
+        <label class="kuiCheckBoxLabel">
+          <input
+            class="kuiCheckBox"
+            type="checkbox"
+            formControlName="round"
+            (ngModelChange)="updateRelative({key:'to'})"
+          >
+          <span class="kuiCheckBoxLabel__text">
+            round to the {{units[relative.to.unit.substring(0,1)]}}
+          </span>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="kbn-timepicker-actions kuiVerticalRhythm">
+    <span
+      class="kbn-timepicker-action-item kbn-timepicker-error"
+      [hidden]="!checkRelative()"
+    >
+      <strong>From</strong> must occur before <strong>To</strong>
+    </span>
+    <button
+      type="submit"
+      class="kuiButton kuiButton--primary kbn-timepicker-submit-button"
+      [disabled]="!(relative.from.preview && relative.to.preview) || checkRelative()"
+    >
+      Go
+    </button>
+  </div>
+</form>

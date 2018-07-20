@@ -1,0 +1,114 @@
+<form [formGroup]="absoluteForm" (ngSubmit)="applyAbsolute()">
+  <div class="kbn-timepicker-body">
+    <div class="kbn-timepicker-section kbn-timepicker-body-column">
+      <div class="kuiLocalDropdownHeader kbn-timepicker-form-header">
+        <label class="kuiLocalDropdownHeader__label">
+          From
+        </label>
+
+        <div class="kuiLocalDropdownHeader__actions">
+          <a
+            class="kuiLocalDropdownHeader__action"
+            (click)="setToNow({key:'from'})"
+            tabindex="0" role="button"
+          >
+            Set To Now
+          </a>
+        </div>
+      </div>
+
+      <input
+        type="text"
+        required
+        class="kuiTextInput fullWidth"
+        formControlName="from"
+        (ngModelChange)="updateAbsolute({key:'from'})"
+      >
+
+      <div class="input-datetime-format">{{format}}</div>
+
+      <div *ngIf="from.invalid && (from.dirty || from.touched)"
+           class="alert alert-danger">
+
+        <div *ngIf="from.errors.required">
+          From is required.
+        </div>
+        <div *ngIf="from.errors.pattern">
+          From pattern doesn't match
+        </div>
+        <div *ngIf="from.errors.date">
+          From is not a valid date
+        </div>
+      </div>
+
+      <div>
+        <ngb-datepicker #dp formControlName="fromPicker" (select)="navigateFromDateTo($event)"></ngb-datepicker>
+      </div>
+
+    </div>
+
+    <div class="kbn-timepicker-section kbn-timepicker-body-column">
+      <div class="kuiLocalDropdownHeader kbn-timepicker-form-header">
+        <label class="kuiLocalDropdownHeader__label">
+          To
+        </label>
+
+        <div class="kuiLocalDropdownHeader__actions">
+          <a
+            class="kuiLocalDropdownHeader__action"
+            (click)="setToNow({key:'to'})"
+            tabindex="0" role="button"
+          >
+            Set To Now
+          </a>
+        </div>
+      </div>
+
+      <input
+        type="text"
+        required
+        class="kuiTextInput fullWidth"
+        formControlName="to"
+        (ngModelChange)="updateAbsolute({key:'to'})"
+      >
+
+      <div class="input-datetime-format">{{format}}</div>
+
+      <div *ngIf="to.invalid && (to.dirty || to.touched)"
+           class="alert alert-danger">
+
+        <div *ngIf="to.errors.required">
+          To is required.
+        </div>
+        <div *ngIf="to.errors.pattern">
+          To pattern doesn't match
+        </div>
+        <div *ngIf="to.errors.date">
+          To is not a valid date
+        </div>
+      </div>
+
+      <div>
+        <ngb-datepicker #dp formControlName="toPicker" (select)="navigateToDateTo($event)"></ngb-datepicker>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="kbn-timepicker-actions kuiVerticalRhythm mt-1">
+    <span
+      class="kbn-timepicker-action-item kbn-timepicker-error"
+      [hidden]="absolute && absolute.to >= absolute.from"
+    >
+      <strong>From</strong> must occur before <strong>To</strong>
+    </span>
+    <button
+      type="submit"
+      class="kuiButton kuiButton--primary kbn-timepicker-submit-button"
+      [disabled]="checkAbsolute()"
+    >
+      Go
+    </button>
+  </div>
+
+</form>

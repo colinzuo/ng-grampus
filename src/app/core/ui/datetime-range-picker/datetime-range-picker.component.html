@@ -1,0 +1,121 @@
+<div class="kuiLocalDropdown">
+  <button class="kuiLocalDropdownCloseButton" (click)="onClose()" aria-label="Close">
+    <span class="fas fa-chevron-circle-up"></span>
+  </button>
+
+  <div id="template_wrapper">
+    <div class="kbn-timepicker">
+      <div class="tab-content kbn-timepicker-content">
+        <!-- Filters -->
+        <div *ngIf="activeTab === 'filter'" role="tabpanel" class="tab-pane active">
+          <div class="kbn-timepicker-title">
+            <h2 class="kuiLocalDropdownTitle kbn-timepicker-title__text">
+              Time Range
+            </h2>
+          </div>
+
+          <div class="kuiVerticalRhythmSmall">
+            <div role="tablist" class="euiTabs euiTabs--small kbn-timepicker-modes kbn-timepicker-title__section">
+              <button
+                id="timepickerQuick"
+                role="tab"
+                class="euiTab"
+                [ngClass]="{'euiTab-isSelected': mode === 'quick' }"
+                (click)="setMode('quick')"
+              >
+                Quick
+              </button>
+
+              <button
+                id="timepickerRelative"
+                role="tab"
+                class="euiTab"
+                [ngClass]="{'euiTab-isSelected': mode === 'relative' }"
+                (click)="setMode('relative')"
+              >
+                Relative
+              </button>
+
+              <button
+                id="timepickerAbsolute"
+                role="tab"
+                class="euiTab"
+                [ngClass]="{'euiTab-isSelected': mode === 'absolute' }"
+                (click)="setMode('absolute')"
+              >
+                Absolute
+              </button>
+
+              <button
+                id="timepickerRecent"
+                role="tab"
+                class="euiTab"
+                [ngClass]="{'euiTab-isSelected': mode === 'recent' }"
+                (click)="setMode('recent')"
+              >
+                Recent
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="kuiVerticalRhythmSmall"
+            [ngSwitch]="mode"
+          >
+            <app-kbn-timepicker-quick-panel
+              *ngSwitchCase="'quick'"
+              (outQuick)="onApply($event)"
+              role="tabpanel"
+              aria-labelledby="timepickerQuick"
+            ></app-kbn-timepicker-quick-panel>
+
+            <app-kbn-timepicker-recent-panel
+              *ngSwitchCase="'recent'"
+              [inRecent]="recent"
+              (outRecent)="onApply($event)"
+              role="tabpanel"
+              aria-labelledby="timepickerRecent"
+            ></app-kbn-timepicker-recent-panel>
+
+            <app-kbn-timepicker-relative-panel
+              *ngSwitchCase="'relative'"
+              [inRelative]="relative"
+              (outRelative)="onApply($event)"
+              role="tabpanel"
+              aria-labelledby="timepickerRelative"
+            ></app-kbn-timepicker-relative-panel>
+
+            <app-kbn-timepicker-absolute-panel
+              *ngSwitchCase="'absolute'"
+              [inAbsolute]="absolute"
+              (outAbsolute)="onApply($event)"
+              role="tabpanel"
+              aria-labelledby="timepickerAbsolute"
+            ></app-kbn-timepicker-absolute-panel>
+          </div>
+        </div>
+
+        <!-- Refresh Intervals -->
+        <div *ngIf="activeTab === 'interval'" role="tabpanel" class="tab-pane active">
+            <h2 class="kuiLocalDropdownTitle">
+              Refresh Interval
+            </h2>
+
+            <div *ngFor="let list of refreshLists" class="kbn-refresh-section">
+              <ul class="list-unstyled">
+                <li *ngFor="let inter of list">
+                  <a
+                    class="refresh-interval"
+                    [ngClass]="{ 'refresh-interval-active': interval.value === inter.value }"
+                    (click)="setRefreshInterval(inter)"
+                  >
+                    {{prettyInterval(inter)}}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>

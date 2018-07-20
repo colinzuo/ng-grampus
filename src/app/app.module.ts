@@ -4,6 +4,8 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule }    from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+
 import { AppComponent } from './app.component';
 import { PageNotFoundComponent } from './not-found.component';
 
@@ -27,6 +29,7 @@ import { LoginComponent } from './login/login.component';
     BrowserAnimationsModule,
     HttpClientModule,
     CoreModule,
+    NgbModule.forRoot(),
     MymeetingsRoutingModule,
     MymeetingsModule,
     AppRoutingModule,

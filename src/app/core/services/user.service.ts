@@ -28,19 +28,19 @@ export class UserService {
   // Verify JWT in localstorage with server & load user's info.
   // This runs once on application startup.
   populate() {
-    console.log("UserService: populate")
+    console.log('UserService: populate');
     // If JWT detected, attempt to get & store user's info
     if (this.jwtService.getToken()) {
-      console.log("UserService: populate get user profile for cached token")
+      console.log('UserService: populate get user profile for cached token');
       this.apiService.loadApiUrl();
       this.apiService.get('/api/rest/v2.0/userProfile')
       .subscribe(
         data => {
-          var user = {
+          const user = {
             token: this.jwtService.getToken().toString(),
             profile: data
-          }
-          this.setAuth(user)
+          };
+          this.setAuth(user);
         },
         err => this.purgeAuth()
       );
@@ -51,8 +51,8 @@ export class UserService {
   }
 
   setAuth(user: User) {
-    console.log("UserService: setAuth: ", user)
-    
+    console.log('UserService: setAuth: ', user);
+
     // Save JWT sent from server in localstorage
     this.jwtService.saveToken(user.token);
     // Set current user data into observable
@@ -62,7 +62,7 @@ export class UserService {
   }
 
   purgeAuth() {
-    console.log("UserService: purgeAuth")
+    console.log('UserService: purgeAuth');
 
     // Remove JWT from localstorage
     this.jwtService.destroyToken();
@@ -73,7 +73,7 @@ export class UserService {
   }
 
   attemptAuth(credentials): Observable<User> {
-    console.log("UserService: attemptAuth ", credentials)
+    console.log('UserService: attemptAuth ', credentials);
 
     return this.apiService.put('/api/rest/v2.0/web/login', credentials)
       .pipe(map(

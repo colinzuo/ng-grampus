@@ -1,15 +1,99 @@
 <div class="container-fluid">
+    <div class="mt-1 clearfix"  [style.width.px]="mainBodyWidth">
+      <div class="loadingIndicator" [ngClass]="isLoading ? '': 'ng-hide'" [hidden]="!isLoading" aria-hidden="true">
+        <div class="loadingIndicator__bar"></div>
+      </div>
+
+        <span class="filter_txt font-weight-bold float-left">
+            {{startTimeDisplay}} -- {{endTimeDisplay}}
+        </span>
+
+      <div class="d-flex justify-content-end">
+          <div class="kuiLocalMenu">
+            <button
+              class="kuiLocalMenuItem"
+              (click)="toggleRefresh()"
+              [hidden]="!(refreshInterval > 0)"
+            >
+              <span
+                class="kuiIcon"
+                aria-hidden="true"
+                [ngClass]="refreshEnabled ? 'fas fa-pause' : 'fas fa-play'"
+              ></span>
+            </button>
+
+            <button
+              class="kuiLocalMenuItem"
+              [ngClass]="{'kuiLocalMenuItem-isSelected': isCurrent('interval') }"
+              (click)="toggleInterval()"
+            >
+              <span [hidden]="!(refreshSetting.interval === 0)">
+                <i aria-hidden="true" class="kuiIcon fas fa-redo-alt"></i> Auto-refresh
+              </span>
+
+              <span
+                [hidden]="!(refreshSetting.interval > 0)"
+              >
+                {{ prettyInterval() }}
+              </span>
+            </button>
+
+            <button
+              class="kuiLocalMenuItem"
+              (click)="moveTimeBack()"
+              aria-label="Move backward in time"
+            >
+              <span
+                class="kuiIcon fas fa-chevron-left"
+                aria-hidden="true"
+                tooltip="Move backward in time"
+              ></span>
+            </button>
+
+            <button
+              class="kuiLocalMenuItem navbar-timepicker-time-desc"
+              [ngClass]="{'kuiLocalMenuItem-isSelected': isCurrent('filter')}"
+              (click)="toggleFilter()"
+              aria-label="Open time range picker"
+              aria-haspopup="true"
+            >
+              <span aria-hidden="true" class="kuiIcon far fa-clock" style="padding-right: 5px;"></span>
+              <span class="d-flex align-middle">{{timeRangeDisplay}}</span>
+            </button>
+
+            <button
+              class="kuiLocalMenuItem"
+              (click)="moveTimeForward()"
+              aria-label="Move forward in time"
+            >
+              <span
+                aria-hidden="true"
+                class="kuiIcon fas fa-chevron-right"
+                tooltip="Move forward in time"
+              ></span>
+            </button>
+          </div>
+        </div>
+    </div>
+    <div class="clearfix" [style.width.px]="mainBodyWidth" [hidden]="!activeTab">
+      <app-datetime-range-picker
+        [inActiveTab]="activeTab"
+        (close)="activeTab=''"
+        [inInterval]="{value: refreshSetting.interval}"
+        (intervalSelect)="onIntervalSelect($event)"
+        (timeSelect)="onTimeSelect($event)"></app-datetime-range-picker>
+    </div>
     <ul class="nav nav-tabs" id="myTab" role="tablist" [style.width.px]="mainBodyWidth">
         <li class="nav-item">
-            <a class="nav-link active" id="conf-general-tab" data-toggle="tab" href="#conf-general" 
+            <a class="nav-link active" id="conf-general-tab" data-toggle="tab" href="#conf-general"
                 role="tab">会议概况</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="call-general-tab" data-toggle="tab" 
+            <a class="nav-link" id="call-general-tab" data-toggle="tab"
                 href="#call-general" role="tab">呼叫概况</a>
         </li>
     </ul>
-    
+
     <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade show active" id="conf-general" role="tabpanel">
             <div class="mt-3 chart-header" [style.width.px]="mainBodyWidth">
@@ -21,7 +105,7 @@
                 <span class="chart-header-label">小时</span>
             </div>
             <div echarts class="mt-1 chart-body" [style.width.px]="mainBodyWidth"
-                    [options]="confChartOption" 
+                    [options]="confChartOption"
                     (chartInit)="onConfGeneralChartInit($event)">
             </div>
         </div>
@@ -35,7 +119,7 @@
                 <span class="chart-header-label">小时</span>
             </div>
             <div echarts class="mt-1 chart-body" [style.width.px]="mainBodyWidth"
-                    [options]="callChartOption" 
+                    [options]="callChartOption"
                     (chartInit)="onCallGeneralChartInit($event)">
             </div>
         </div>

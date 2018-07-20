@@ -1,0 +1,39 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~@fortawesome/fontawesome-free/css/all.css";
+// @import "./styles/kibana/commons.style.css";
+
+.chart_filter .filter_txt {
+    display: inline-block;
+    font-size: 14px;
+    color: #313131;
+    vertical-align: middle;
+    padding-left: 20px;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.btn-default {
+    background-color: white;
+}
+
+.lx-form-datapicker {
+    background-position: -37px 0;
+    right: 10px;
+}
+.lx-form {
+    position: absolute;
+    top: 7px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    z-index: 10;
+}
+
+.time_lab {
+    vertical-align: middle;
+    font-size: 14px;
+    padding-left: 20px;
+    padding-right: 5px;
+}

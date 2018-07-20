@@ -1,3 +1,4 @@
+export * from './time-range.service';
 export * from './api.service';
 export * from './auth-guard.service';
 export * from './jwt.service';
