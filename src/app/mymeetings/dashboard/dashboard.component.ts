@@ -891,6 +891,7 @@ export class DashboardComponent implements OnInit {
     aggTermCallEpTop.company_id = curUser.profile.orgId;
     aggTermCallEpTop.start_time = this.startTime;
     aggTermCallEpTop.end_time = this.endTime;
+    aggTermCallEpTop.size = 20;
     aggTermCallEpTop.target = 'device_model';
 
     aggTermCallEpTop.order = 'count';

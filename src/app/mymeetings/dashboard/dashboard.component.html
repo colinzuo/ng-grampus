@@ -180,11 +180,11 @@
           <span class="chart-header-data">{{callTotalDurationSum}}</span>
           <span class="chart-header-label">小时</span>
         </div>
-        <div echarts class="mt-1 room-top-chart-body chart-left" [style.width.px]="halfMainBodyWidth"
+        <div echarts class="mt-1 call-ep-top-chart-body chart-left" [style.width.px]="halfMainBodyWidth"
              [options]="callEpTopCountChartOption"
              (chartInit)="onCallEpTopCountChartInit($event)">
         </div>
-        <div echarts class="mt-1 room-top-chart-body chart-right" [style.width.px]="halfMainBodyWidth"
+        <div echarts class="mt-1 call-ep-top-chart-body chart-right" [style.width.px]="halfMainBodyWidth"
              [options]="callEpTopDurationSumChartOption"
              (chartInit)="onCallEpTopDurationSumChartInit($event)">
         </div>
