@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-const units = ['y', 'M', 'w', 'd', 'h', 'm', 's', 'ms'];
+const units = ['y', 'Q', 'M', 'w', 'd', 'h', 'm', 's', 'ms'];
 const unitsDesc = units;
 const unitsAsc = [...unitsDesc].reverse();
 
@@ -112,6 +112,8 @@ function parseDateMath(mathString, time, roundUp) {
     } else {
       if (unit === 'w') {
         unit = 'isoWeek';
+      } else if (unit === 'Q') {
+        unit = 'quarter';
       }
       if (type === 0) {
         if (roundUp) dateTime.endOf(unit);

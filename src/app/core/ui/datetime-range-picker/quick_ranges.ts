@@ -3,10 +3,12 @@ export const QUICK_RANGES = [
     { from: 'now/d',    to: 'now/d',    display: 'Today',                  section: 0, unit: 'd' },
     { from: 'now/w',    to: 'now/w',    display: 'This week',             section: 0, unit: 'w' },
     { from: 'now/M',    to: 'now/M',    display: 'This month',            section: 0, unit: 'M'},
+    { from: 'now/Q',    to: 'now/Q',    display: 'This quarter',          section: 0, unit: 'Q'},
     { from: 'now/y',    to: 'now/y',    display: 'This year',             section: 0, unit: 'y'},
     { from: 'now/d',    to: 'now',      display: 'Today so far',          section: 0, unit: 'd'},
     { from: 'now/w',    to: 'now',      display: 'Week to date',          section: 0, unit: 'w'},
     { from: 'now/M',    to: 'now',      display: 'Month to date',         section: 0, unit: 'M'},
+    { from: 'now/Q',    to: 'now',      display: 'Quarter to date',       section: 0, unit: 'Q'},
     { from: 'now/y',    to: 'now',      display: 'Year to date',          section: 0, unit: 'y' }
   ],
   [

@@ -11,10 +11,15 @@ import { UI_CONFIG } from '../../config';
 
 import { slideInDownAnimation } from '../../animations';
 
+import { CallMonitor } from './call-monitor';
 import { AggDatehistgramReq } from './agg-datehistgram-req';
 import { AggDatehistgramRsp } from './agg-datehistgram-rsp';
+import { AggTermReq } from './agg-term-req';
+import { AggTermRsp } from './agg-term-rsp';
+
 import { DateRange } from './date-range';
 import * as moment from 'moment';
+import _ from 'lodash';
 
 declare var $: any;
 
@@ -31,12 +36,17 @@ export class DashboardComponent implements OnInit {
   screenHeight: number;
   screenWidth: number;
   mainBodyWidth: number;
+  halfMainBodyWidth: number;
 
   // dateRanges: DateRange[];
   // selectedDateRange: DateRange;
 
   confGeneralChartEchartsIntance: any;
   callGeneralChartEchartsIntance: any;
+  roomTopCountChartEchartsIntance: any;
+  roomTopDurationSumChartEchartsIntance: any;
+  roomCapacityCountChartEchartsIntance: any;
+  roomCapacityDurationSumChartEchartsIntance: any;
 
   confChartOption: any;
   aggDatehistogramConf: AggDatehistgramReq;
@@ -48,17 +58,34 @@ export class DashboardComponent implements OnInit {
   callTotalCount: number;
   callTotalDurationSum: number;
 
+  roomConfTotalCount = 0;
+  roomConfTotalDurationSum = 0;
+  roomTopConfTotalCount = 0;
+  roomTopConfTotalDurationSum = 0;
+  roomCapacities: Array<number>;
+
+  roomTopCountChartOption: any;
+  roomTopDurationSumChartOption: any;
+  roomCapacityCountChartOption: any;
+  roomCapacityDurationSumChartOption: any;
+
+  aggTermRoomTopCount: AggTermReq;
+  aggTermRoomTopDurationSum: AggTermReq;
+  aggTermRoomCapacityCount: AggTermReq;
+  aggTermRoomCapacityDurationSum: AggTermReq;
+
   startTime: String;
   endTime: String;
 
   startTimeDisplay: String;
   endTimeDisplay: String;
 
-  ongoingConfGeneralApiCnt = 0;
-  ongoingConfGeneralApiTimerId: any;
-
-  ongoingCallGeneralApiCnt = 0;
-  ongoingCallGeneralApiTimerId: any;
+  confGeneralApiCallMonitor = new CallMonitor('confGeneralApiCall');
+  callGeneralApiCallMonitor = new CallMonitor('callGeneralApiCall');
+  roomTopCountApiCallMonitor = new CallMonitor('roomTopCountApiCall');
+  roomTopDurationSumApiCallMonitor = new CallMonitor('roomTopDurationSumApiCall');
+  roomCapacityCountApiCallMonitor = new CallMonitor('roomCapacityCountApiCall');
+  roomCapacityDurationSumApiCallMonitor = new CallMonitor('roomCapacityDurationSumApiCall');
 
   refreshSetting: RefreshSetting;
   timeRange: TimeRange;
@@ -76,6 +103,7 @@ export class DashboardComponent implements OnInit {
       if (this.mainBodyWidth < 500) {
         this.mainBodyWidth = 500;
       }
+      this.halfMainBodyWidth = this.mainBodyWidth / 2 - 20;
       console.log('DashboardComponent mainBodyWidth ', this.mainBodyWidth);
 
       this.chartResize();
@@ -88,6 +116,22 @@ export class DashboardComponent implements OnInit {
 
     if (this.callGeneralChartEchartsIntance) {
       this.callGeneralChartEchartsIntance.resize();
+    }
+
+    if (this.roomTopCountChartEchartsIntance) {
+      this.roomTopCountChartEchartsIntance.resize();
+    }
+
+    if (this.roomTopDurationSumChartEchartsIntance) {
+      this.roomTopDurationSumChartEchartsIntance.resize();
+    }
+
+    if (this.roomCapacityCountChartEchartsIntance) {
+      this.roomCapacityCountChartEchartsIntance.resize();
+    }
+
+    if (this.roomCapacityDurationSumChartEchartsIntance) {
+      this.roomCapacityDurationSumChartEchartsIntance.resize();
     }
   }
 
@@ -115,6 +159,12 @@ export class DashboardComponent implements OnInit {
     this.callTotalCount = 0;
     this.callTotalDurationSum = 0;
     this.setConfCallGeneralChart('call', [], [], []);
+
+    this.roomCapacities = [10, 20, 50, 100, 200, 400, 1000];
+    this.roomTopConfTotalCount = 0;
+    this.roomTopConfTotalDurationSum = 0;
+    this.setRoomTopChart('count', [], []);
+    this.setRoomTopChart('durationSum', [], []);
   }
 
   onConfGeneralChartInit(ec) {
@@ -356,26 +406,16 @@ export class DashboardComponent implements OnInit {
     aggDatehistogramConf.format = 'yyyy-MM-dd';
     aggDatehistogramConf.target = 'conf';
     this.aggDatehistogramConf = aggDatehistogramConf;
-    if (this.ongoingConfGeneralApiTimerId) {
-      clearTimeout(this.ongoingConfGeneralApiTimerId);
-    }
-    this.ongoingConfGeneralApiTimerId = setTimeout(() => {
-      if (this.ongoingConfGeneralApiCnt !== 0) {
-        console.log('unexpected ongoingConfGeneralApiCnt, ', this.ongoingConfGeneralApiCnt);
-        this.ongoingConfGeneralApiCnt = 0;
-      }
-      this.ongoingConfGeneralApiTimerId = undefined;
-    }, 20000);
-    this.ongoingConfGeneralApiCnt++;
+    this.confGeneralApiCallMonitor.start();
     this.apiService.post('/report/agg/datehistgram_stats', aggDatehistogramConf).subscribe(
         data => {
             console.log('DashboardComponent aggDatehistogramConf: rsp ', data);
             this.updateConfGeneralChart(data);
-          this.ongoingConfGeneralApiCnt--;
+          this.confGeneralApiCallMonitor.finish();
         },
         err => {
           console.log('DashboardComponent aggDatehistogramConf: err ', err);
-          this.ongoingConfGeneralApiCnt--;
+          this.confGeneralApiCallMonitor.finish();
         }
     );
   }
@@ -413,28 +453,16 @@ export class DashboardComponent implements OnInit {
     aggDatehistogramCall.format = 'yyyy-MM-dd';
     aggDatehistogramCall.target = 'call';
     this.aggDatehistogramCall = aggDatehistogramCall;
-
-    if (this.ongoingCallGeneralApiTimerId) {
-      clearTimeout(this.ongoingCallGeneralApiTimerId);
-    }
-    this.ongoingCallGeneralApiTimerId = setTimeout(() => {
-      if (this.ongoingCallGeneralApiCnt !== 0) {
-        console.log('unexpected ongoingCallGeneralApiCnt, ', this.ongoingCallGeneralApiCnt);
-        this.ongoingCallGeneralApiCnt = 0;
-      }
-      this.ongoingCallGeneralApiTimerId = undefined;
-    }, 20000);
-    this.ongoingCallGeneralApiCnt++;
-
+    this.callGeneralApiCallMonitor.start();
     this.apiService.post('/report/agg/datehistgram_stats', aggDatehistogramCall).subscribe(
         data => {
             console.log('DashboardComponent aggDatehistogramCall: rsp ', data);
             this.updateCallGeneralChart(data);
-          this.ongoingCallGeneralApiCnt--;
+          this.callGeneralApiCallMonitor.finish();
         },
         err => {
           console.log('DashboardComponent aggDatehistogramCall: err ', err);
-          this.ongoingCallGeneralApiCnt--;
+          this.callGeneralApiCallMonitor.finish();
         }
     );
   }
@@ -456,6 +484,362 @@ export class DashboardComponent implements OnInit {
     }
     this.callTotalDurationSum = Math.round(this.callTotalDurationSum * 100) / 100;
     this.setConfCallGeneralChart('call', xData, yDataCount, yDataDurationSum);
+  }
+
+  onRoomTopCountChartInit(ec) {
+    this.roomTopCountChartEchartsIntance = ec;
+  }
+
+  onRoomTopDurationSumChartInit(ec) {
+    this.roomTopDurationSumChartEchartsIntance = ec;
+  }
+
+  onRoomCapacityCountChartInit(ec) {
+    this.roomCapacityCountChartEchartsIntance = ec;
+  }
+
+  onRoomCapacityDurationSumChartInit(ec) {
+    this.roomCapacityDurationSumChartEchartsIntance = ec;
+  }
+
+  requestRoomTopChartData() {
+    if (this.roomTopCountChartEchartsIntance) {
+      this.roomTopCountChartEchartsIntance.showLoading();
+    }
+    if (this.roomTopDurationSumChartEchartsIntance) {
+      this.roomTopDurationSumChartEchartsIntance.showLoading();
+    }
+
+    const curUser = this.userService.getCurrentUser();
+    const aggTermRoomTop: AggTermReq = new AggTermReq();
+    aggTermRoomTop.company_id = curUser.profile.orgId;
+    aggTermRoomTop.start_time = this.startTime;
+    aggTermRoomTop.end_time = this.endTime;
+    aggTermRoomTop.target = 'conf';
+
+    aggTermRoomTop.order = 'count';
+    this.aggTermRoomTopCount = _.clone(aggTermRoomTop);
+    this.roomTopCountApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermRoomTopCount).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermRoomTopCount: rsp ', data);
+        this.updateRoomTopCountChart(data);
+        this.roomTopCountApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermRoomTopCount: err ', err);
+        this.roomTopCountApiCallMonitor.finish();
+      }
+    );
+
+    aggTermRoomTop.order = 'sum';
+    this.aggTermRoomTopDurationSum = _.clone(aggTermRoomTop);
+    this.roomTopDurationSumApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermRoomTopDurationSum).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermRoomTopDurationSum: rsp ', data);
+        this.updateRoomTopDurationSumChart(data)
+        this.roomTopDurationSumApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermRoomTopDurationSum: err ', err);
+        this.roomTopDurationSumApiCallMonitor.finish();
+      }
+    );
+  }
+
+  requestRoomCapacityChartData() {
+    if (this.roomCapacityCountChartEchartsIntance) {
+      this.roomCapacityCountChartEchartsIntance.showLoading();
+    }
+    if (this.roomCapacityDurationSumChartEchartsIntance) {
+      this.roomCapacityDurationSumChartEchartsIntance.showLoading();
+    }
+
+    const curUser = this.userService.getCurrentUser();
+    const aggTermRoomCapacity: AggTermReq = new AggTermReq();
+    aggTermRoomCapacity.company_id = curUser.profile.orgId;
+    aggTermRoomCapacity.start_time = this.startTime;
+    aggTermRoomCapacity.end_time = this.endTime;
+    aggTermRoomCapacity.target = 'capacity';
+    aggTermRoomCapacity.order = 'key';
+
+    this.aggTermRoomCapacityCount = _.clone(aggTermRoomCapacity);
+    this.roomCapacityCountApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermRoomCapacityCount).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermRoomCapacityCount: rsp ', data);
+        this.updateRoomCapacityCountChart(data);
+        this.roomCapacityCountApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermRoomCapacityCount: err ', err);
+        this.roomCapacityCountApiCallMonitor.finish();
+      }
+    );
+
+    this.aggTermRoomCapacityDurationSum = _.clone(aggTermRoomCapacity);
+    this.roomCapacityDurationSumApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermRoomCapacityDurationSum).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermRoomCapacityDurationSum: rsp ', data);
+        this.updateRoomCapacityDurationSumChart(data);
+        this.roomCapacityDurationSumApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermRoomCapacityDurationSum: err ', err);
+        this.roomCapacityDurationSumApiCallMonitor.finish();
+      }
+    );
+  }
+
+  setRoomTopChart(target: string, yDataKey: any, yDataValue: any) {
+    const echarts = this.es.echarts;
+
+    this.chartResize();
+
+    let seriesName;
+    let titleText;
+    if (target === 'count') {
+      if (this.roomTopCountChartEchartsIntance) {
+        this.roomTopCountChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['数量'];
+      titleText = '使用次数';
+    } else if (target === 'durationSum') {
+      if (this.roomTopDurationSumChartEchartsIntance) {
+        this.roomTopDurationSumChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['时长(小时)'];
+      titleText = '使用时长';
+    } else {
+      return;
+    }
+
+    const chartOption = {
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: seriesName,
+        x: 'left'
+      },
+      title: [{
+        left: 'center',
+        text: titleText
+      }],
+      toolbox: {
+        feature: {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType: {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      grid: {
+        x: 150
+      },
+      xAxis : [
+        {
+          type : 'value',
+          boundaryGap : [0, 0.01]
+        }
+      ],
+      yAxis: [
+        {
+          type: 'category',
+          data: yDataKey
+        }
+      ],
+      series: [
+        {
+          type: 'bar',
+          name: seriesName[0],
+          data: yDataValue,
+          markPoint: {
+            data: [
+              {type: 'max', name: '最大值'},
+              {type: 'min', name: '最小值'}
+            ]
+          },
+          markLine: {
+            data: [
+              {type: 'average', name: '平均值'}
+            ]
+          }
+        }
+      ]
+    };
+
+    if (target === 'count') {
+      this.roomTopCountChartOption = chartOption;
+    } else if (target === 'durationSum') {
+      this.roomTopDurationSumChartOption = chartOption;
+    }
+  }
+
+  updateRoomTopCountChart(data: AggTermRsp) {
+    const yDataKey = new Array();
+    const yDataValue = new Array();
+    this.roomTopConfTotalCount = data.count.valueOf();
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      yDataKey[data.buckets.length - 1 - idx] = data.buckets[idx].name;
+      yDataValue[data.buckets.length - 1 - idx] = data.buckets[idx].count;
+    }
+    this.setRoomTopChart('count', yDataKey, yDataValue);
+  }
+
+  updateRoomTopDurationSumChart(data: AggTermRsp) {
+    const yDataKey = new Array();
+    const yDataValue = new Array();
+    this.roomTopConfTotalDurationSum = Math.round(data.sum.valueOf() / 36) / 100;
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      yDataKey[data.buckets.length - 1 - idx] = data.buckets[idx].name;
+      yDataValue[data.buckets.length - 1 - idx] = Math.round(data.buckets[idx].sum.valueOf() / 36) / 100;
+    }
+    this.setRoomTopChart('durationSum', yDataKey, yDataValue);
+  }
+
+  setRoomCapacityChart(target: string, dataKey: any, dataValue: any) {
+    const echarts = this.es.echarts;
+
+    this.chartResize();
+
+    let seriesName;
+    let titleText;
+    if (target === 'count') {
+      if (this.roomCapacityCountChartEchartsIntance) {
+        this.roomCapacityCountChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['数量'];
+      titleText = '使用数量';
+    } else if (target === 'durationSum') {
+      if (this.roomCapacityDurationSumChartEchartsIntance) {
+        this.roomCapacityDurationSumChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['时长(小时)'];
+      titleText = '使用时长';
+    } else {
+      return;
+    }
+
+    const chartOption = {
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: seriesName,
+        x: 'left'
+      },
+      title: [{
+        left: 'center',
+        text: titleText
+      }],
+      toolbox: {
+        feature: {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType: {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      xAxis : [
+        {
+          type : 'category',
+          data: dataKey
+        }
+      ],
+      yAxis: [
+        {
+          type: 'value',
+          boundaryGap : [0, 0.01]
+        }
+      ],
+      series: [
+        {
+          type: 'bar',
+          name: seriesName[0],
+          data: dataValue,
+          markPoint: {
+            data: [
+              {type: 'max', name: '最大值'},
+              {type: 'min', name: '最小值'}
+            ]
+          },
+          markLine: {
+            data: [
+              {type: 'average', name: '平均值'}
+            ]
+          }
+        }
+      ]
+    };
+
+    if (target === 'count') {
+      this.roomCapacityCountChartOption = chartOption;
+    } else if (target === 'durationSum') {
+      this.roomCapacityDurationSumChartOption = chartOption;
+    }
+  }
+
+  updateRoomCapacityCountChart(data: AggTermRsp) {
+    const dataKey = new Array();
+    const dataValue = new Array();
+    this.roomConfTotalCount = data.count.valueOf();
+
+    for (let idx = 0; idx < this.roomCapacities.length; idx++) {
+      dataKey[idx] = this.roomCapacities[idx] + '方';
+      dataValue[idx] = 0;
+    }
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      let found = false;
+      for (let j = 0; j < this.roomCapacities.length; j++) {
+        if (this.roomCapacities[j] === data.buckets[idx].key) {
+          found = true;
+          dataValue[j] = data.buckets[idx].count;
+          break;
+        }
+      }
+      if (!found) {
+        dataKey[this.roomCapacities.length] = data.buckets[idx].count + '方';
+        dataValue[this.roomCapacities.length] = data.buckets[idx].count;
+      }
+    }
+
+    this.setRoomCapacityChart('count', dataKey, dataValue);
+  }
+
+  updateRoomCapacityDurationSumChart(data: AggTermRsp) {
+    const dataKey = new Array();
+    const dataValue = new Array();
+    this.roomConfTotalDurationSum = Math.round(data.sum.valueOf() / 36) / 100;
+
+    for (let idx = 0; idx < this.roomCapacities.length; idx++) {
+      dataKey[idx] = this.roomCapacities[idx] + '方';
+      dataValue[idx] = 0;
+    }
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      let found = false;
+      for (let j = 0; j < this.roomCapacities.length; j++) {
+        if (this.roomCapacities[j] === data.buckets[idx].key) {
+          found = true;
+          dataValue[j] = Math.round(data.buckets[idx].sum.valueOf() / 36) / 100;
+          break;
+        }
+      }
+      if (!found) {
+        dataKey[this.roomCapacities.length] = data.buckets[idx].count + '方';
+        dataValue[this.roomCapacities.length] = Math.round(data.buckets[idx].sum.valueOf() / 36) / 100;
+      }
+    }
+
+    this.setRoomCapacityChart('durationSum', dataKey, dataValue);
   }
 
   onUpdateRefreshSetting(refreshSetting: RefreshSetting) {
@@ -533,6 +917,8 @@ export class DashboardComponent implements OnInit {
 
     this.requestConfGeneralChartData();
     this.requestCallGeneralChartData();
+    this.requestRoomTopChartData();
+    this.requestRoomCapacityChartData();
   }
 
   get timeRangeDisplay() {
@@ -558,129 +944,13 @@ export class DashboardComponent implements OnInit {
   }
 
   get isLoading() {
-    if (this.ongoingConfGeneralApiCnt > 0) {
+    if (this.confGeneralApiCallMonitor.active()) {
       return true;
     }
-    if (this.ongoingCallGeneralApiCnt > 0) {
+    if (this.callGeneralApiCallMonitor.active()) {
       return true;
     }
     return false;
   }
 
-  //
-  // initDateRanges() {
-  //   this.dateRanges = [
-  //     {
-  //       name: '本月',
-  //       type: 'CurMonth'
-  //     },
-  //     {
-  //       name: '上一个月',
-  //       type: 'PrevMonth'
-  //     },
-  //     {
-  //       name: '上一个季度',
-  //       type: 'PrevQuarter'
-  //     },
-  //     {
-  //       name: '今年',
-  //       type: 'CurYear'
-  //     },
-  //     {
-  //       name: '去年',
-  //       type: 'PrevYear'
-  //     }
-  //   ];
-  //   this.selectDateRange(this.dateRanges[0]);
-  // }
-  //
-  // selectDateRangeReal() {
-  //   this.setupTime(this.selectedDateRange.type);
-  //   console.log('selectDateRange ', this.selectedDateRange);
-  //
-  //   this.confTotalCount = 0;
-  //   this.confTotalDurationSum = 0;
-  //   this.setConfCallGeneralChart('conf', [], [], []);
-  //   this.requestConfGeneralChartData();
-  //
-  //   this.callTotalCount = 0;
-  //   this.callTotalDurationSum = 0;
-  //   this.setConfCallGeneralChart('call', [], [], []);
-  //   this.requestCallGeneralChartData();
-  // }
-  //
-  // selectDateRange(dateRange: DateRange) {
-  //   if (dateRange.type === 'UserDefined') {
-  //     console.log('$(\'#datePickerModal\') ', $('#datePickerModal'));
-  //     $('#datePickerModal').modal({});
-  //     return;
-  //   } else {
-  //     this.selectedDateRange = dateRange;
-  //     this.selectDateRangeReal();
-  //   }
-  // }
-  //
-  // setupTime(type: String) {
-  //   if (type === 'CurMonth') {
-  //     const curTime = new Date();
-  //     this.startTime = formatDate(curTime, 'yyyy-MM-01T00:00:00.000ZZZZZ', 'en-us');
-  //     this.startTimeDisplay = formatDate(curTime, 'yyyy-MM-01', 'en-us');
-  //     this.endTime = formatDate(curTime, 'yyyy-MM-ddThh:mm:ss.SSSZZZZZ', 'en-us');
-  //     this.endTimeDisplay = formatDate(curTime, 'yyyy-MM-dd', 'en-us');
-  //   } else if (type === 'PrevMonth') {
-  //     const curTime = new Date();
-  //     const curMonthStart = new Date(formatDate(curTime, 'yyyy-MM-01T00:00:00.000ZZZZZ', 'en-us'));
-  //     const prevMonthEnd = new Date(curMonthStart.valueOf() - 1);
-  //     this.startTime = formatDate(prevMonthEnd, 'yyyy-MM-01T00:00:00.000ZZZZZ', 'en-us');
-  //     this.startTimeDisplay = formatDate(prevMonthEnd, 'yyyy-MM-01', 'en-us');
-  //     this.endTime = formatDate(prevMonthEnd, 'yyyy-MM-ddThh:mm:ss.SSSZZZZZ', 'en-us');
-  //     this.endTimeDisplay = formatDate(prevMonthEnd, 'yyyy-MM-dd', 'en-us');
-  //   } else if (type === 'PrevQuarter') {
-  //     const curTime = new Date();
-  //     let curQuarterBeginMonth: string;
-  //     let prevQuarterBeginMonth: string;
-  //     if (curTime.getMonth() >= 0 && curTime.getMonth() <= 2) {
-  //       curQuarterBeginMonth = '01';
-  //       prevQuarterBeginMonth = '10';
-  //     } else if (curTime.getMonth() >= 3 && curTime.getMonth() <= 5) {
-  //       curQuarterBeginMonth = '04';
-  //       prevQuarterBeginMonth = '01';
-  //     } else if (curTime.getMonth() >= 6 && curTime.getMonth() <= 8) {
-  //       curQuarterBeginMonth = '07';
-  //       prevQuarterBeginMonth = '04';
-  //     } else if (curTime.getMonth() >= 9 && curTime.getMonth() <= 11) {
-  //       curQuarterBeginMonth = '10';
-  //       prevQuarterBeginMonth = '07';
-  //     }
-  //     const curQuarterStart = new Date(formatDate(curTime,
-  //       'yyyy-' + curQuarterBeginMonth + '-01T00:00:00.000ZZZZZ', 'en-us'));
-  //     const prevQuarterEnd = new Date(curQuarterStart.valueOf() - 1);
-  //     const prevQuarterStart = new Date(formatDate(prevQuarterEnd,
-  //       'yyyy-' + prevQuarterBeginMonth + '-01T00:00:00.000ZZZZZ', 'en-us'));
-  //     this.startTime = formatDate(prevQuarterStart, 'yyyy-MM-01T00:00:00.000ZZZZZ', 'en-us');
-  //     this.startTimeDisplay = formatDate(prevQuarterStart, 'yyyy-MM-01', 'en-us');
-  //     this.endTime = formatDate(prevQuarterEnd, 'yyyy-MM-ddThh:mm:ss.SSSZZZZZ', 'en-us');
-  //     this.endTimeDisplay = formatDate(prevQuarterEnd, 'yyyy-MM-dd', 'en-us');
-  //   } else if (type === 'CurYear') {
-  //     const curTime = new Date();
-  //     const curYearStart = new Date(formatDate(curTime,
-  //       'yyyy-01-01T00:00:00.000ZZZZZ', 'en-us'));
-  //     this.startTime = formatDate(curYearStart, 'yyyy-MM-01T00:00:00.000ZZZZZ', 'en-us');
-  //     this.startTimeDisplay = formatDate(curYearStart, 'yyyy-MM-01', 'en-us');
-  //     this.endTime = formatDate(curTime, 'yyyy-MM-ddThh:mm:ss.SSSZZZZZ', 'en-us');
-  //     this.endTimeDisplay = formatDate(curTime, 'yyyy-MM-dd', 'en-us');
-  //   } else if (type === 'PrevYear') {
-  //     const curTime = new Date();
-  //     const curYearStart = new Date(formatDate(curTime,
-  //       'yyyy-01-01T00:00:00.000ZZZZZ', 'en-us'));
-  //     const prevYearEnd = new Date(curYearStart.valueOf() - 1);
-  //     this.startTime = formatDate(prevYearEnd, 'yyyy-01-01T00:00:00.000ZZZZZ', 'en-us');
-  //     this.startTimeDisplay = formatDate(prevYearEnd, 'yyyy-01-01', 'en-us');
-  //     this.endTime = formatDate(prevYearEnd, 'yyyy-MM-ddThh:mm:ss.SSSZZZZZ', 'en-us');
-  //     this.endTimeDisplay = formatDate(prevYearEnd, 'yyyy-MM-dd', 'en-us');
-  //   }
-  //
-  //   console.log('startTime ', this.startTime);
-  //   console.log('endTime ', this.endTime);
-  // }
 }

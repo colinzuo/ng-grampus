@@ -92,6 +92,10 @@
             <a class="nav-link" id="call-general-tab" data-toggle="tab"
                 href="#call-general" role="tab">呼叫概况</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="room-tab" data-toggle="tab"
+               href="#room" role="tab">云会议室</a>
+        </li>
     </ul>
 
     <div class="tab-content" id="myTabContent">
@@ -123,5 +127,38 @@
                     (chartInit)="onCallGeneralChartInit($event)">
             </div>
         </div>
+      <div class="tab-pane fade" id="room" role="tabpanel">
+        <div class="mt-3 chart-header" [style.width.px]="mainBodyWidth">
+          <span class="chart-header-label">会议 <strong>TOP10</strong> 总数量：</span>
+          <span class="chart-header-data">{{roomTopConfTotalCount}}</span>
+          <span class="chart-header-label">个</span>
+          <span class="ml-3 chart-header-label">总时长：</span>
+          <span class="chart-header-data">{{roomTopConfTotalDurationSum}}</span>
+          <span class="chart-header-label">小时</span>
+
+          <span class="chart-header-label ml-5"><strong>全部</strong> 总数量：</span>
+          <span class="chart-header-data">{{roomConfTotalCount}}</span>
+          <span class="chart-header-label">个</span>
+          <span class="ml-3 chart-header-label">总时长：</span>
+          <span class="chart-header-data">{{roomConfTotalDurationSum}}</span>
+          <span class="chart-header-label">小时</span>
+        </div>
+        <div echarts class="mt-1 room-top-chart-body chart-left" [style.width.px]="halfMainBodyWidth"
+             [options]="roomTopCountChartOption"
+             (chartInit)="onRoomTopCountChartInit($event)">
+        </div>
+        <div echarts class="mt-1 room-top-chart-body chart-right" [style.width.px]="halfMainBodyWidth"
+             [options]="roomTopDurationSumChartOption"
+             (chartInit)="onRoomTopDurationSumChartInit($event)">
+        </div>
+        <div echarts class="mt-1 room-capacity-chart-body chart-left" [style.width.px]="halfMainBodyWidth"
+             [options]="roomCapacityCountChartOption"
+             (chartInit)="onRoomCapacityCountChartInit($event)">
+        </div>
+        <div echarts class="mt-1 room-capacity-chart-body chart-right" [style.width.px]="halfMainBodyWidth"
+             [options]="roomCapacityDurationSumChartOption"
+             (chartInit)="onRoomCapacityDurationSumChartInit($event)">
+        </div>
+      </div>
     </div>
 </div>
