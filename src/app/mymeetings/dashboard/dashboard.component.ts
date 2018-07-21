@@ -47,6 +47,8 @@ export class DashboardComponent implements OnInit {
   roomTopDurationSumChartEchartsIntance: any;
   roomCapacityCountChartEchartsIntance: any;
   roomCapacityDurationSumChartEchartsIntance: any;
+  callEpTopCountChartEchartsIntance: any;
+  callEpTopDurationSumChartEchartsIntance: any;
 
   confChartOption: any;
   aggDatehistogramConf: AggDatehistgramReq;
@@ -74,6 +76,15 @@ export class DashboardComponent implements OnInit {
   aggTermRoomCapacityCount: AggTermReq;
   aggTermRoomCapacityDurationSum: AggTermReq;
 
+  callEpTopTotalCount = 0;
+  callEpTopTotalDurationSum = 0;
+
+  callEpTopCountChartOption: any;
+  callEpTopDurationSumChartOption: any;
+
+  aggTermCallEpTopCount: AggTermReq;
+  aggTermCallEpTopDurationSum: AggTermReq;
+
   startTime: String;
   endTime: String;
 
@@ -86,6 +97,8 @@ export class DashboardComponent implements OnInit {
   roomTopDurationSumApiCallMonitor = new CallMonitor('roomTopDurationSumApiCall');
   roomCapacityCountApiCallMonitor = new CallMonitor('roomCapacityCountApiCall');
   roomCapacityDurationSumApiCallMonitor = new CallMonitor('roomCapacityDurationSumApiCall');
+  callEpTopCountApiCallMonitor = new CallMonitor('callEpTopCountApiCall');
+  callEpTopDurationSumApiCallMonitor = new CallMonitor('callEpTopDurationSumApiCall');
 
   refreshSetting: RefreshSetting;
   timeRange: TimeRange;
@@ -133,6 +146,14 @@ export class DashboardComponent implements OnInit {
     if (this.roomCapacityDurationSumChartEchartsIntance) {
       this.roomCapacityDurationSumChartEchartsIntance.resize();
     }
+
+    if (this.callEpTopCountChartEchartsIntance) {
+      this.callEpTopCountChartEchartsIntance.resize();
+    }
+
+    if (this.callEpTopDurationSumChartEchartsIntance) {
+      this.callEpTopDurationSumChartEchartsIntance.resize();
+    }
   }
 
   constructor(private userService: UserService,
@@ -165,6 +186,13 @@ export class DashboardComponent implements OnInit {
     this.roomTopConfTotalDurationSum = 0;
     this.setRoomTopChart('count', [], []);
     this.setRoomTopChart('durationSum', [], []);
+    this.setRoomCapacityChart('count', [], []);
+    this.setRoomCapacityChart('durationSum', [], []);
+
+    this.callEpTopTotalCount = 0;
+    this.callEpTopTotalDurationSum = 0;
+    this.setCallEpTopChart('count', [], []);
+    this.setCallEpTopChart('durationSum', [], []);
   }
 
   onConfGeneralChartInit(ec) {
@@ -842,6 +870,170 @@ export class DashboardComponent implements OnInit {
     this.setRoomCapacityChart('durationSum', dataKey, dataValue);
   }
 
+  onCallEpTopCountChartInit(ec) {
+    this.callEpTopCountChartEchartsIntance = ec;
+  }
+
+  onCallEpTopDurationSumChartInit(ec) {
+    this.callEpTopDurationSumChartEchartsIntance = ec;
+  }
+
+  requestCallEpTopChartData() {
+    if (this.callEpTopCountChartEchartsIntance) {
+      this.callEpTopCountChartEchartsIntance.showLoading();
+    }
+    if (this.callEpTopDurationSumChartEchartsIntance) {
+      this.callEpTopDurationSumChartEchartsIntance.showLoading();
+    }
+
+    const curUser = this.userService.getCurrentUser();
+    const aggTermCallEpTop: AggTermReq = new AggTermReq();
+    aggTermCallEpTop.company_id = curUser.profile.orgId;
+    aggTermCallEpTop.start_time = this.startTime;
+    aggTermCallEpTop.end_time = this.endTime;
+    aggTermCallEpTop.target = 'device_model';
+
+    aggTermCallEpTop.order = 'count';
+    this.aggTermCallEpTopCount = _.clone(aggTermCallEpTop);
+    this.callEpTopCountApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermCallEpTopCount).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermCallEpTopCount: rsp ', data);
+        this.updateCallEpTopCountChart(data);
+        this.callEpTopCountApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermCallEpTopCount: err ', err);
+        this.callEpTopCountApiCallMonitor.finish();
+      }
+    );
+
+    aggTermCallEpTop.order = 'sum';
+    this.aggTermCallEpTopDurationSum = _.clone(aggTermCallEpTop);
+    this.callEpTopDurationSumApiCallMonitor.start();
+    this.apiService.post('/report/agg/term_stats', this.aggTermCallEpTopDurationSum).subscribe(
+      data => {
+        console.log('DashboardComponent aggTermCallEpTopDurationSum: rsp ', data);
+        this.updateCallEpTopDurationSumChart(data)
+        this.callEpTopDurationSumApiCallMonitor.finish();
+      },
+      err => {
+        console.log('DashboardComponent aggTermCallEpTopDurationSum: err ', err);
+        this.callEpTopDurationSumApiCallMonitor.finish();
+      }
+    );
+  }
+
+  setCallEpTopChart(target: string, yDataKey: any, yDataValue: any) {
+    const echarts = this.es.echarts;
+
+    this.chartResize();
+
+    let seriesName;
+    let titleText;
+    if (target === 'count') {
+      if (this.callEpTopCountChartEchartsIntance) {
+        this.callEpTopCountChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['数量'];
+      titleText = '使用次数';
+    } else if (target === 'durationSum') {
+      if (this.callEpTopDurationSumChartEchartsIntance) {
+        this.callEpTopDurationSumChartEchartsIntance.hideLoading();
+      }
+      seriesName = ['时长(小时)'];
+      titleText = '使用时长';
+    } else {
+      return;
+    }
+
+    const chartOption = {
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: seriesName,
+        x: 'left'
+      },
+      title: [{
+        left: 'center',
+        text: titleText
+      }],
+      toolbox: {
+        feature: {
+          mark : {show: true},
+          dataView : {show: true, readOnly: false},
+          magicType: {show: true, type: ['line', 'bar']},
+          restore : {show: true},
+          saveAsImage : {show: true}
+        }
+      },
+      grid: {
+        x: 250
+      },
+      xAxis : [
+        {
+          type : 'value',
+          boundaryGap : [0, 0.01]
+        }
+      ],
+      yAxis: [
+        {
+          type: 'category',
+          data: yDataKey
+        }
+      ],
+      series: [
+        {
+          type: 'bar',
+          name: seriesName[0],
+          data: yDataValue,
+          markPoint: {
+            data: [
+              {type: 'max', name: '最大值'},
+              {type: 'min', name: '最小值'}
+            ]
+          },
+          markLine: {
+            data: [
+              {type: 'average', name: '平均值'}
+            ]
+          }
+        }
+      ]
+    };
+
+    if (target === 'count') {
+      this.callEpTopCountChartOption = chartOption;
+    } else if (target === 'durationSum') {
+      this.callEpTopDurationSumChartOption = chartOption;
+    }
+  }
+
+  updateCallEpTopCountChart(data: AggTermRsp) {
+    const yDataKey = new Array();
+    const yDataValue = new Array();
+    this.callEpTopTotalCount = data.count.valueOf();
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      yDataKey[data.buckets.length - 1 - idx] = data.buckets[idx].key;
+      yDataValue[data.buckets.length - 1 - idx] = data.buckets[idx].count;
+    }
+    this.setCallEpTopChart('count', yDataKey, yDataValue);
+  }
+
+  updateCallEpTopDurationSumChart(data: AggTermRsp) {
+    const yDataKey = new Array();
+    const yDataValue = new Array();
+    this.callEpTopTotalDurationSum = Math.round(data.sum.valueOf() / 36) / 100;
+
+    for (let idx = 0; idx < data.buckets.length; idx++) {
+      yDataKey[data.buckets.length - 1 - idx] = data.buckets[idx].key;
+      yDataValue[data.buckets.length - 1 - idx] = Math.round(data.buckets[idx].sum.valueOf() / 36) / 100;
+    }
+    this.setCallEpTopChart('durationSum', yDataKey, yDataValue);
+  }
+
   onUpdateRefreshSetting(refreshSetting: RefreshSetting) {
     console.log('onUpdateRefreshSetting: ', refreshSetting);
     this.refreshSetting = refreshSetting;
@@ -919,6 +1111,7 @@ export class DashboardComponent implements OnInit {
     this.requestCallGeneralChartData();
     this.requestRoomTopChartData();
     this.requestRoomCapacityChartData();
+    this.requestCallEpTopChartData();
   }
 
   get timeRangeDisplay() {
