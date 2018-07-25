@@ -46,7 +46,9 @@
               "node_modules/echarts/theme/macarons.js",
               "node_modules/echarts/theme/infographic.js",
               "node_modules/echarts/theme/shine.js",
-              "node_modules/echarts/theme/roma.js"
+              "node_modules/echarts/theme/roma.js",
+              "node_modules/datatables.net/js/jquery.dataTables.js",
+              "node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js"
             ]
           },
           "configurations": {

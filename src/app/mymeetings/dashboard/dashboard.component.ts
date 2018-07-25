@@ -1,6 +1,7 @@
 import {Component, HostBinding, OnInit, HostListener, ViewEncapsulation} from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { formatDate } from '@angular/common';
+import { HttpParams } from '@angular/common/http';
 
 import { NgxEchartsService } from 'ngx-echarts';
 
@@ -16,6 +17,11 @@ import { AggDatehistgramReq } from './agg-datehistgram-req';
 import { AggDatehistgramRsp } from './agg-datehistgram-rsp';
 import { AggTermReq } from './agg-term-req';
 import { AggTermRsp } from './agg-term-rsp';
+import { AggTermMultiReq } from './agg-term-multi-req';
+import {AggBucketTermMultiStatsItem, AggTermMultiRsp} from './agg-term-multi-rsp';
+import { Company } from './company';
+import { Department } from './Department';
+import { User } from './User';
 
 import { DateRange } from './date-range';
 import * as moment from 'moment';
@@ -37,6 +43,7 @@ export class DashboardComponent implements OnInit {
   screenWidth: number;
   mainBodyWidth: number;
   halfMainBodyWidth: number;
+  statFormTableWidth: number;
 
   // dateRanges: DateRange[];
   // selectedDateRange: DateRange;
@@ -85,6 +92,15 @@ export class DashboardComponent implements OnInit {
   aggTermCallEpTopCount: AggTermReq;
   aggTermCallEpTopDurationSum: AggTermReq;
 
+  statFormType = 'Company';
+  companyList: Array<Company>;
+  companyStatList: Array<any>;
+  deptList: Array<Department>;
+  deptStatList: Array<any>;
+  userList: Array<User>;
+  userStatList: Array<any>;
+  dataTableLoaderTimerId: any;
+
   startTime: String;
   endTime: String;
 
@@ -117,6 +133,7 @@ export class DashboardComponent implements OnInit {
         this.mainBodyWidth = 500;
       }
       this.halfMainBodyWidth = this.mainBodyWidth / 2 - 20;
+      this.statFormTableWidth = this.mainBodyWidth - 200 - 40;
       console.log('DashboardComponent mainBodyWidth ', this.mainBodyWidth);
 
       this.chartResize();
@@ -193,6 +210,27 @@ export class DashboardComponent implements OnInit {
     this.callEpTopTotalDurationSum = 0;
     this.setCallEpTopChart('count', [], []);
     this.setCallEpTopChart('durationSum', [], []);
+
+    this.companyList = [];
+    this.companyStatList = [];
+    this.deptList = [];
+    this.deptStatList = [];
+    this.userList = [];
+    this.userStatList = [];
+
+    this.dataTableLoaderTimerId = setInterval(() => {
+      if (this.companyStatList.length > 0) {
+        $('#companyTable').DataTable();
+      }
+
+      if (this.deptStatList.length > 0) {
+        $('#deptTable').DataTable();
+      }
+
+      if (this.userStatList.length > 0) {
+        $('#userTable').DataTable();
+      }
+    }, 1000);
   }
 
   onConfGeneralChartInit(ec) {
@@ -1035,6 +1073,189 @@ export class DashboardComponent implements OnInit {
     this.setCallEpTopChart('durationSum', yDataKey, yDataValue);
   }
 
+  sayHello(name: string = '') {
+    console.log('Hello ', name);
+  }
+
+  setStatFormType(type: string) {
+    this.statFormType = type;
+  }
+
+  requestOrgData() {
+    this.apiService.get('/api/rest/v2.0/orgs').subscribe(
+      data => {
+        console.log('DashboardComponent requestOrgData: rsp ', data);
+        this.companyList = data;
+        this.requestStatFormData('Company');
+      },
+      err => {
+        console.log('DashboardComponent requestOrgData: err ', err);
+      }
+    );
+  }
+
+  requestDeptData() {
+    this.apiService.get('/api/rest/v2.0/depts').subscribe(
+      data => {
+        console.log('DashboardComponent requestDeptData: rsp ', data);
+        this.deptList = data;
+        this.requestStatFormData('Department');
+      },
+      err => {
+        console.log('DashboardComponent requestDeptData: err ', err);
+      }
+    );
+  }
+
+  requestUserData(currentPage: string = '1') {
+    const params = new HttpParams().set('pageSize', '50').set('currentPage', currentPage);
+    this.apiService.get('/api/rest/v2.0/usersPage', params).subscribe(
+      data => {
+        console.log('DashboardComponent requestUserData: rsp ', data);
+        this.userList = data.list;
+        this.requestStatFormData('User');
+      },
+      err => {
+        console.log('DashboardComponent requestUserData: err ', err);
+      }
+    );
+  }
+
+  requestStatFormData(type: string) {
+    const aggTermMultiReq = new AggTermMultiReq();
+    aggTermMultiReq.start_time = this.startTime;
+    aggTermMultiReq.end_time = this.endTime;
+
+    const groupIds = [];
+    if (type === 'Company') {
+      for (let i = 0; i < this.companyList.length; i++) {
+        groupIds[i] = this.companyList[i].id;
+      }
+      aggTermMultiReq.group_ids = undefined;
+      aggTermMultiReq.target = 'company';
+
+      this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
+        data => {
+          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          this.companyStatList = data.buckets;
+        },
+        err => {
+          console.log('DashboardComponent requestStatFormData: err ', err);
+        }
+      );
+    } else if (type === 'Department') {
+      for (let i = 0; i < this.deptList.length; i++) {
+        groupIds[i] = this.deptList[i].id;
+      }
+      aggTermMultiReq.group_ids = undefined;
+      aggTermMultiReq.target = 'dept';
+
+      this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
+        data => {
+          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          this.deptStatList = data.buckets;
+        },
+        err => {
+          console.log('DashboardComponent requestStatFormData: err ', err);
+        }
+      );
+    } else if (type === 'User') {
+      for (let i = 0; i < this.userList.length; i++) {
+        groupIds[i] = this.userList[i].id;
+      }
+      aggTermMultiReq.group_ids = undefined;
+      aggTermMultiReq.target = 'user';
+
+      this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
+        data => {
+          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          this.userStatList = data.buckets;
+        },
+        err => {
+          console.log('DashboardComponent requestStatFormData: err ', err);
+        }
+      );
+    }
+  }
+
+  groupStatCompanyName(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.group && groupStat.group.company) {
+      return groupStat.group.company.name;
+    } else {
+      return '';
+    }
+  }
+
+  groupStatConfCntSum(groupStat: AggBucketTermMultiStatsItem) {
+    return groupStat.conf_cnt.sum;
+  }
+
+  groupStatConfCallCntAllAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.call_cnt_all.sum === 0) {
+      return 0;
+    }
+    const avg = groupStat.call_cnt_all.sum / groupStat.conf_cnt.sum;
+    return Math.round(avg * 100) / 100;
+  }
+
+  groupStatConfCallCntSelfAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.call_cnt_self.sum === 0) {
+      return 0;
+    }
+    const avg = groupStat.call_cnt_self.sum / groupStat.conf_cnt.sum;
+    return Math.round(avg * 100) / 100;
+  }
+
+  groupStatConfDurationAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.conf_cnt.sum === 0) {
+      return '0秒';
+    }
+    const avg = groupStat.conf_duration.sum / groupStat.conf_cnt.sum;
+    if (avg > 3600) {
+      return Math.round(avg / 3600 * 100) / 100 + '小时';
+    } else if (avg > 60) {
+      return Math.round(avg / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(avg * 100) / 100 + '秒';
+    }
+  }
+
+  groupStatCallCntAll(groupStat: AggBucketTermMultiStatsItem) {
+    return groupStat.call_cnt_all.sum;
+  }
+
+  groupStatCallDurationAllAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.call_cnt_all.sum === 0) {
+      return '0秒';
+    }
+    const avg = groupStat.call_duration_all.sum / groupStat.call_cnt_all.sum;
+    if (avg > 3600) {
+      return Math.round(avg / 3600 * 100) / 100 + '小时';
+    } else if (avg > 60) {
+      return Math.round(avg / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(avg * 100) / 100 + '秒';
+    }
+  }
+
+  groupStatCallCntSelf(groupStat: AggBucketTermMultiStatsItem) {
+    return groupStat.call_cnt_self.sum;
+  }
+
+  groupStatCallDurationSelfAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.call_cnt_self.sum === 0) {
+      return '0秒';
+    }
+    const avg = groupStat.call_duration_self.sum / groupStat.call_cnt_self.sum;
+    if (avg > 3600) {
+      return Math.round(avg / 3600 * 100) / 100 + '小时';
+    } else if (avg > 60) {
+      return Math.round(avg / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(avg * 100) / 100 + '秒';
+    }
+  }
+
   onUpdateRefreshSetting(refreshSetting: RefreshSetting) {
     console.log('onUpdateRefreshSetting: ', refreshSetting);
     this.refreshSetting = refreshSetting;
@@ -1113,6 +1334,10 @@ export class DashboardComponent implements OnInit {
     this.requestRoomTopChartData();
     this.requestRoomCapacityChartData();
     this.requestCallEpTopChartData();
+
+    this.requestOrgData();
+    this.requestDeptData();
+    this.requestUserData();
   }
 
   get timeRangeDisplay() {
@@ -1142,6 +1367,24 @@ export class DashboardComponent implements OnInit {
       return true;
     }
     if (this.callGeneralApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.roomTopCountApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.roomTopDurationSumApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.roomCapacityCountApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.roomCapacityDurationSumApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.callEpTopCountApiCallMonitor.active()) {
+      return true;
+    }
+    if (this.callEpTopDurationSumApiCallMonitor.active()) {
       return true;
     }
     return false;

@@ -1145,7 +1145,19 @@
   .theme-dark .kuiLink:hover {
     color: #b7e2ea; }
 
-button {
+.list-unstyled {
+    padding-left: 0;
+    list-style: none;
+}
+
+  /**
+   * Utility class.
+   */
+  .fullWidth {
+    width: 100% !important;
+  }
+
+  button {
     background: none;
     border: none;
     padding: 0;
@@ -1155,26 +1167,14 @@ button {
     color: inherit;
     font-size: inherit;
     border-radius: 0;
-}
+  }
 
-.list-unstyled {
-    padding-left: 0;
-    list-style: none;
-}
-
-a:hover, button, [role=button] {
+  a:hover, button, [role=button] {
     cursor: pointer;
-}
-a {
+  }
+  a {
     text-decoration: none;
     color: #0079a5;
-}
-
-  /**
-   * Utility class.
-   */
-  .fullWidth {
-    width: 100% !important;
   }
 
 .testtest {

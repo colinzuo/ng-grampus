@@ -24,7 +24,8 @@ export class KbnTimepickerAbsolutePanelComponent implements OnInit, OnChanges {
   absoluteForm: FormGroup;
 
   format = 'YYYY-MM-DD HH:mm:ss.SSS';
-  navFormat = 'YYYY-MM-DD 00:00:00.000';
+  navFromFormat = 'YYYY-MM-DD 00:00:00.000';
+  navToFormat = 'YYYY-MM-DD 23:59:59.999';
 
   constructor(private fb: FormBuilder,
               config: NgbDatepickerConfig) {
@@ -65,13 +66,13 @@ export class KbnTimepickerAbsolutePanelComponent implements OnInit, OnChanges {
 
   navigateFromDateTo(event: NgbDateStruct) {
     console.log('navigateFromDateTo: ', event);
-    const navDisplay = moment().set({'year': event.year, 'month': event.month - 1, 'date': event.day}).format(this.navFormat);
+    const navDisplay = moment().set({'year': event.year, 'month': event.month - 1, 'date': event.day}).format(this.navFromFormat);
     this.absoluteForm.get('from').setValue(navDisplay);
   }
 
   navigateToDateTo(event: NgbDateStruct) {
     console.log('navigateToDateTo: ', event);
-    const navDisplay = moment().set({'year': event.year, 'month': event.month - 1, 'date': event.day}).format(this.navFormat);
+    const navDisplay = moment().set({'year': event.year, 'month': event.month - 1, 'date': event.day}).format(this.navToFormat);
     this.absoluteForm.get('to').setValue(navDisplay);
   }
 
