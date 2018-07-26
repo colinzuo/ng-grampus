@@ -93,12 +93,14 @@ export class DashboardComponent implements OnInit {
   aggTermCallEpTopDurationSum: AggTermReq;
 
   statFormType = 'Company';
+  statFormFilter = 'all';
   companyList: Array<Company>;
   companyStatList: Array<any>;
   deptList: Array<Department>;
   deptStatList: Array<any>;
   userList: Array<User>;
   userStatList: Array<any>;
+  roomStatList: Array<any>;
   dataTableLoaderTimerId: any;
 
   startTime: String;
@@ -217,6 +219,7 @@ export class DashboardComponent implements OnInit {
     this.deptStatList = [];
     this.userList = [];
     this.userStatList = [];
+    this.roomStatList = [];
 
     this.dataTableLoaderTimerId = setInterval(() => {
       if (this.companyStatList.length > 0) {
@@ -229,6 +232,10 @@ export class DashboardComponent implements OnInit {
 
       if (this.userStatList.length > 0) {
         $('#userTable').DataTable();
+      }
+
+      if (this.roomStatList.length > 0) {
+        $('#roomTable').DataTable();
       }
     }, 1000);
   }
@@ -1081,6 +1088,12 @@ export class DashboardComponent implements OnInit {
     this.statFormType = type;
   }
 
+  setStatFormFilter(hostFilter: string) {
+    this.statFormFilter = hostFilter;
+
+    this.requestStatFormDataAll();
+  }
+
   requestOrgData() {
     this.apiService.get('/api/rest/v2.0/orgs').subscribe(
       data => {
@@ -1121,10 +1134,23 @@ export class DashboardComponent implements OnInit {
     );
   }
 
+  requestStatFormDataAll() {
+    if (this.companyList.length > 0) {
+      this.requestStatFormData('Company');
+    }
+    if (this.deptList.length > 0) {
+      this.requestStatFormData('Department');
+    }
+    if (this.userList.length > 0) {
+      this.requestStatFormData('User');
+    }
+  }
+
   requestStatFormData(type: string) {
     const aggTermMultiReq = new AggTermMultiReq();
     aggTermMultiReq.start_time = this.startTime;
     aggTermMultiReq.end_time = this.endTime;
+    aggTermMultiReq.param1 = this.statFormFilter;
 
     const groupIds = [];
     if (type === 'Company') {
@@ -1136,11 +1162,11 @@ export class DashboardComponent implements OnInit {
 
       this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
         data => {
-          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          console.log('DashboardComponent requestStatFormData Company: rsp ', data);
           this.companyStatList = data.buckets;
         },
         err => {
-          console.log('DashboardComponent requestStatFormData: err ', err);
+          console.log('DashboardComponent requestStatFormData Company: err ', err);
         }
       );
     } else if (type === 'Department') {
@@ -1152,11 +1178,11 @@ export class DashboardComponent implements OnInit {
 
       this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
         data => {
-          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          console.log('DashboardComponent requestStatFormData Department: rsp ', data);
           this.deptStatList = data.buckets;
         },
         err => {
-          console.log('DashboardComponent requestStatFormData: err ', err);
+          console.log('DashboardComponent requestStatFormData Department: err ', err);
         }
       );
     } else if (type === 'User') {
@@ -1168,11 +1194,24 @@ export class DashboardComponent implements OnInit {
 
       this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
         data => {
-          console.log('DashboardComponent requestStatFormData: rsp ', data);
+          console.log('DashboardComponent requestStatFormData User: rsp ', data);
           this.userStatList = data.buckets;
         },
         err => {
-          console.log('DashboardComponent requestStatFormData: err ', err);
+          console.log('DashboardComponent requestStatFormData User: err ', err);
+        }
+      );
+    } else if (type === 'Room') {
+      aggTermMultiReq.group_ids = undefined;
+      aggTermMultiReq.target = 'room';
+
+      this.apiService.post('/report/agg/term_multi_stats', aggTermMultiReq).subscribe(
+        data => {
+          console.log('DashboardComponent requestStatFormData Room: rsp ', data);
+          this.roomStatList = data.buckets;
+        },
+        err => {
+          console.log('DashboardComponent requestStatFormData Room: err ', err);
         }
       );
     }
@@ -1190,8 +1229,12 @@ export class DashboardComponent implements OnInit {
     return groupStat.conf_cnt.sum;
   }
 
+  groupStatConfCntSumIncluEmpty(groupStat: AggBucketTermMultiStatsItem) {
+    return groupStat.conf_cnt.sum + groupStat.conf_empty_cnt.sum;
+  }
+
   groupStatConfCallCntAllAvg(groupStat: AggBucketTermMultiStatsItem) {
-    if (groupStat.call_cnt_all.sum === 0) {
+    if (groupStat.conf_cnt.sum === 0) {
       return 0;
     }
     const avg = groupStat.call_cnt_all.sum / groupStat.conf_cnt.sum;
@@ -1204,6 +1247,35 @@ export class DashboardComponent implements OnInit {
     }
     const avg = groupStat.call_cnt_self.sum / groupStat.conf_cnt.sum;
     return Math.round(avg * 100) / 100;
+  }
+
+  groupStatConfDurationCnt(groupStat: AggBucketTermMultiStatsItem) {
+    return groupStat.conf_duration.count;
+  }
+
+  groupStatConfDurationSum(groupStat: AggBucketTermMultiStatsItem) {
+    const timeValue = groupStat.conf_duration.sum;
+    if (timeValue >= 0) {
+      return Math.round(timeValue / 3600 * 100) / 100;
+    } else if (timeValue > 60) {
+      return Math.round(timeValue / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(timeValue * 100) / 100 + '秒';
+    }
+  }
+
+  groupStatRoomDurationAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.conf_duration.count === 0) {
+      return '0';
+    }
+    const avg = groupStat.conf_duration.sum / groupStat.conf_duration.count;
+    if (avg > 0) {
+      return Math.round(avg / 3600 * 100) / 100;
+    } else if (avg > 60) {
+      return Math.round(avg / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(avg * 100) / 100 + '秒';
+    }
   }
 
   groupStatConfDurationAvg(groupStat: AggBucketTermMultiStatsItem) {
@@ -1222,6 +1294,25 @@ export class DashboardComponent implements OnInit {
 
   groupStatCallCntAll(groupStat: AggBucketTermMultiStatsItem) {
     return groupStat.call_cnt_all.sum;
+  }
+
+  groupStatRoomCallCntAvg(groupStat: AggBucketTermMultiStatsItem) {
+    if (groupStat.conf_duration.count === 0) {
+      return '0';
+    }
+    const avg = groupStat.call_cnt_all.sum / groupStat.conf_duration.count;
+    return Math.round(avg * 100) / 100;
+  }
+
+  groupStatCallDurationAllSum(groupStat: AggBucketTermMultiStatsItem) {
+    const timeValue = groupStat.call_duration_all.sum;
+    if (timeValue >= 0) {
+      return Math.round(timeValue / 3600 * 100) / 100;
+    } else if (timeValue > 60) {
+      return Math.round(timeValue / 60 * 100) / 100 + '分钟';
+    } else {
+      return Math.round(timeValue * 100) / 100 + '秒';
+    }
   }
 
   groupStatCallDurationAllAvg(groupStat: AggBucketTermMultiStatsItem) {
@@ -1319,6 +1410,19 @@ export class DashboardComponent implements OnInit {
     this.activeTab = '';
   }
 
+  refreshAllData() {
+    this.requestConfGeneralChartData();
+    this.requestCallGeneralChartData();
+    this.requestRoomTopChartData();
+    this.requestRoomCapacityChartData();
+    this.requestCallEpTopChartData();
+
+    this.requestOrgData();
+    this.requestDeptData();
+    this.requestUserData();
+    this.requestStatFormData('Room');
+  }
+
   onUpdateTimeRange(timeRange: TimeRange) {
     console.log('onUpdateTimeRange: ', timeRange);
     this.timeRange = timeRange;
@@ -1329,15 +1433,7 @@ export class DashboardComponent implements OnInit {
     this.endTime = this.timeRange.toMoment.format(timeFormat);
     this.endTimeDisplay = this.timeRange.toMoment.format(timeFormatDisplay);
 
-    this.requestConfGeneralChartData();
-    this.requestCallGeneralChartData();
-    this.requestRoomTopChartData();
-    this.requestRoomCapacityChartData();
-    this.requestCallEpTopChartData();
-
-    this.requestOrgData();
-    this.requestDeptData();
-    this.requestUserData();
+    this.refreshAllData();
   }
 
   get timeRangeDisplay() {

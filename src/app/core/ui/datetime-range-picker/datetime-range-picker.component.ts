@@ -103,6 +103,12 @@ export class DatetimeRangePickerComponent implements OnInit, OnChanges {
       this.recent.splice(10, this.recent.length - 10);
     }
     this.timeSelect.emit(event);
+
+    if (event.mode === TIME_MODES.ABSOLUTE) {
+      this.absolute = event;
+    } else if (event.mode === TIME_MODES.RELATIVE) {
+      this.relative = event;
+    }
   }
 
 }

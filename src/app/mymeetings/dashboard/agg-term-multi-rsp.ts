@@ -17,7 +17,9 @@ export class AggBucketTermMultiStatsItem {
   call_duration_all: AggBucketStatsItem;
   call_duration_self: AggBucketStatsItem;
   conf_duration: AggBucketStatsItem;
+  conf_empty_duration: AggBucketStatsItem;
   conf_cnt: AggBucketStatsItem;
+  conf_empty_cnt: AggBucketStatsItem;
 }
 
 export class AggTermMultiRsp {

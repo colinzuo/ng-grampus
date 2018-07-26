@@ -60,6 +60,7 @@ export class KbnTimepickerAbsolutePanelComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.absolute = _.cloneDeep(this.inAbsolute);
+    this.absolute.mode = TIME_MODES.ABSOLUTE;
     console.log('ngOnChanges ', this.absolute);
     this.rebuildForm();
   }
@@ -82,7 +83,6 @@ export class KbnTimepickerAbsolutePanelComponent implements OnInit, OnChanges {
   }
 
   applyAbsolute() {
-    this.absolute.mode = TIME_MODES.ABSOLUTE;
     console.log('applyAbsolute: ', this.absolute);
     this.outAbsolute.emit(this.absolute);
   }
