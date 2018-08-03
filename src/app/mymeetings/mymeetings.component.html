@@ -10,6 +10,14 @@
                     Dashboard
                 </a>
             </nav>
+          <nav class="nav nav-pills flex-column">
+            <a class="nav-item nav-link"
+               routerLink="/location"
+               routerLinkActive="active">
+              <i class="fas fa-link"></i>
+              Location
+            </a>
+          </nav>
         </div>
         <div [style.width.px]="mainBodyWidth">
             <router-outlet></router-outlet>
