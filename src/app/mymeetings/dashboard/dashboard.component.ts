@@ -6,13 +6,13 @@ import { HttpParams } from '@angular/common/http';
 import { NgxEchartsService } from 'ngx-echarts';
 
 import {UserService, ApiService, RefreshSetting, TimeRange} from '../../core';
+import {CallMonitor} from '../../core/shared/call-monitor';
 import { TimeRangeService } from '../../core/services/time-range.service';
 import { prettyInterval } from '../../core/ui/datetime-range-picker/pretty_interval';
 import { UI_CONFIG } from '../../config';
 
 import { slideInDownAnimation } from '../../animations';
 
-import { CallMonitor } from './call-monitor';
 import { AggDatehistgramReq } from './agg-datehistgram-req';
 import { AggDatehistgramRsp } from './agg-datehistgram-rsp';
 import { AggTermReq } from './agg-term-req';

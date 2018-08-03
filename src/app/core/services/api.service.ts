@@ -17,7 +17,7 @@ export class ApiService {
     private http: HttpClient,
     private jwtService: JwtService
   ) {
-    this.apiUrl = "";
+    this.apiUrl = '';
   }
 
   private formatErrors(error: HttpErrorResponse) {
@@ -37,7 +37,7 @@ export class ApiService {
   }
 
   setApiUrl(apiUrl: string) {
-    console.log("ApiService: setApiUrl ", apiUrl);
+    console.log('ApiService: setApiUrl ', apiUrl);
     this.apiUrl = apiUrl;
   }
 
@@ -49,28 +49,40 @@ export class ApiService {
     this.apiUrl = window.localStorage['apiUrl'];
   }
 
-  get(path: string, params: HttpParams = new HttpParams()): Observable<any> {
-    return this.http.get(`${this.apiUrl}${path}`, { params })
+  get(path: string, params: HttpParams = new HttpParams(), targetUrl: string = ''): Observable<any> {
+    if (targetUrl === '') {
+      targetUrl = this.apiUrl;
+    }
+    return this.http.get(`${targetUrl}${path}`, { params })
       .pipe(catchError(this.formatErrors));
   }
 
-  put(path: string, body: Object = {}): Observable<any> {
+  put(path: string, body: Object = {}, targetUrl: string = ''): Observable<any> {
+    if (targetUrl === '') {
+      targetUrl = this.apiUrl;
+    }
     return this.http.put(
-      `${this.apiUrl}${path}`,
+      `${targetUrl}${path}`,
       JSON.stringify(body)
     ).pipe(catchError(this.formatErrors));
   }
 
-  post(path: string, body: Object = {}): Observable<any> {
+  post(path: string, body: Object = {}, targetUrl: string = ''): Observable<any> {
+    if (targetUrl === '') {
+      targetUrl = this.apiUrl;
+    }
     return this.http.post(
-      `${this.apiUrl}${path}`,
+      `${targetUrl}${path}`,
       JSON.stringify(body)
     ).pipe(catchError(this.formatErrors));
   }
 
-  delete(path): Observable<any> {
+  delete(path, targetUrl: string = ''): Observable<any> {
+    if (targetUrl === '') {
+      targetUrl = this.apiUrl;
+    }
     return this.http.delete(
-      `${this.apiUrl}${path}`
+      `${targetUrl}${path}`
     ).pipe(catchError(this.formatErrors));
   }
 }

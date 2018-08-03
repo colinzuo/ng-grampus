@@ -20,7 +20,7 @@ export class AuthGuardService implements CanActivate, CanActivateChild {
   ): Observable<boolean> {
 
     return this.userService.isAuthenticated.pipe(take(1), map(isAuthed => {
-      console.log("AuthGuardService: canActivate: isAuthed ", isAuthed)
+      console.log('AuthGuardService: canActivate: isAuthed ', isAuthed);
       if (!isAuthed) {
         this.router.navigate(['/login']);
       }
@@ -34,7 +34,7 @@ export class AuthGuardService implements CanActivate, CanActivateChild {
     state: RouterStateSnapshot
   ): Observable<boolean> {
 
-    console.log("AuthGuardService: canActivateChild")
+    console.log('AuthGuardService: canActivateChild');
 
     return this.canActivate(route, state);
 

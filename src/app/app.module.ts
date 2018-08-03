@@ -15,12 +15,14 @@ import { MymeetingsRoutingModule } from './mymeetings/mymeetings-routing.module'
 import { MymeetingsModule } from './mymeetings/mymeetings.module';
 
 import { LoginComponent } from './login/login.component';
+import { LocationComponent } from './location/location.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    PageNotFoundComponent
+    PageNotFoundComponent,
+    LocationComponent
   ],
   imports: [
     BrowserModule,

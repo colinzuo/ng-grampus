@@ -1,0 +1,75 @@
+<div class="container-fluid">
+  <div class="mt-1 clearfix">
+    <div class="loadingIndicator" [ngClass]="isLoading ? '': 'ng-hide'" [hidden]="!isLoading" aria-hidden="true">
+      <div class="loadingIndicator__bar"></div>
+    </div>
+  </div>
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" id="locate_domain_zone-tab" data-toggle="tab" href="#locate_domain_zone"
+         role="tab">locate_domain_zone</a>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="locate_domain_zone" role="tabpanel">
+      <div class="row mt-3">
+
+        <div class="col-12 col-md-6 offset-md-3">
+          <app-list-errors [errors]="errors"></app-list-errors>
+          <form [formGroup]="ldzForm" (ngSubmit)="locateDomainZone()">
+            <fieldset [disabled]="isSubmitting">
+              <fieldset class="form-group">
+                <div class="input-group input-group-lg">
+                  <input
+                    formControlName="apiUrl"
+                    placeholder="ApiUrl"
+                    class="form-control"
+                    type="text"/>
+                  <div class="input-group-append">
+                    <i class="input-group-text fas fa-link"></i>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset class="form-group">
+                <div class="input-group input-group-lg">
+                  <input
+                    formControlName="epIp"
+                    placeholder="epIp"
+                    class="form-control"
+                    type="text"/>
+                  <div class="input-group-append">
+                    <i class="input-group-text fas fa-link"></i>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset class="form-group checkbox">
+                <label class="center-block">
+                  <input type="checkbox" formControlName="remember">Remember Me?
+                </label>
+              </fieldset>
+              <fieldset class="form-group">
+                <div class="input-group input-group-lg">
+                  <button class="btn btn-lg btn-primary pull-xs-right" [disabled]="!ldzForm.valid" type="submit">
+                    Send
+                    <span class="input-group-text fas fa-play" style="background: transparent;border: transparent"></span>
+                  </button>
+                </div>
+              </fieldset>
+            </fieldset>
+          </form>
+          <p>{{message}}</p>
+          <div class="row">
+            <label>Domain: </label>
+            <p class="ml-5">{{domain}}</p>
+          </div>
+          <div class="row">
+            <label>Zone: </label>
+            <p class="ml-5">{{zone}}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
